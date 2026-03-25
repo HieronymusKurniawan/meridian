@@ -617,7 +617,6 @@ export async function closePosition({ position_address }) {
     recordClose(position_address, "agent decision");
 
     // Record performance for learning
-    const tracked = getTrackedPosition(position_address);
     if (tracked) {
       const deployedAt = new Date(tracked.deployed_at).getTime();
       const minutesHeld = Math.floor((Date.now() - deployedAt) / 60000);
