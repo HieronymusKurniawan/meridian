@@ -20,6 +20,7 @@ telegram.js         Telegram bot: polling, notifications (deploy/close/swap/OOR)
 hive-mind.js        Optional collective intelligence server sync
 smart-wallets.js    KOL/alpha wallet tracker (smart-wallets.json)
 token-blacklist.js  Permanent token blacklist (token-blacklist.json)
+rpc-rotator.js      RPC URL + Helius API key auto-rotation on rate limit (429)
 logger.js           Daily-rotating log files + action audit trail
 
 tools/

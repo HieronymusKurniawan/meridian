@@ -8,13 +8,13 @@ import {
 import bs58 from "bs58";
 import { log } from "../logger.js";
 import { config } from "../config.js";
+import { getConnection as getRotatorConnection, getHeliusKey, reportRpcError, reportHeliusError } from "../rpc-rotator.js";
 
-let _connection = null;
 let _wallet = null;
 
+// Connection now managed by rpc-rotator.js for auto-rotation on 429
 function getConnection() {
-  if (!_connection) _connection = new Connection(process.env.RPC_URL, "confirmed");
-  return _connection;
+  return getRotatorConnection();
 }
 
 function getWallet() {
@@ -42,9 +42,9 @@ export async function getWalletBalances() {
     return { wallet: null, sol: 0, sol_price: 0, sol_usd: 0, usdc: 0, tokens: [], total_usd: 0, error: "Wallet not configured" };
   }
 
-  const HELIUS_KEY = process.env.HELIUS_API_KEY;
+  const HELIUS_KEY = getHeliusKey();
   if (!HELIUS_KEY) {
-    log("wallet_error", "HELIUS_API_KEY not set in .env");
+    log("wallet_error", "HELIUS_API_KEY not set — add heliusApiKeys to user-config.json or HELIUS_API_KEY to .env");
     return { wallet: walletAddress, sol: 0, sol_price: 0, sol_usd: 0, usdc: 0, tokens: [], total_usd: 0, error: "Helius API key missing" };
   }
 
@@ -53,7 +53,10 @@ export async function getWalletBalances() {
     const res = await fetch(url);
     
     if (!res.ok) {
-      throw new Error(`Helius API error: ${res.status} ${res.statusText}`);
+      const err = new Error(`Helius API error: ${res.status} ${res.statusText}`);
+      err.status = res.status;
+      if (res.status === 429) reportHeliusError(err);
+      throw err;
     }
 
     const data = await res.json();
@@ -86,6 +89,7 @@ export async function getWalletBalances() {
       total_usd: Math.round((data.totalUsdValue || 0) * 100) / 100,
     };
   } catch (error) {
+    reportHeliusError(error);
     log("wallet_error", error.message);
     return {
       wallet: walletAddress,
@@ -211,6 +215,7 @@ export async function swapToken({
       amount_out: result.outputAmountResult,
     };
   } catch (error) {
+    reportRpcError(error);
     log("swap_error", error.message);
     return { success: false, error: error.message };
   }

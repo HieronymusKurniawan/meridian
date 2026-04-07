@@ -8,6 +8,7 @@ import BN from "bn.js";
 import bs58 from "bs58";
 import { config } from "../config.js";
 import { log } from "../logger.js";
+import { getConnection as getRotatorConnection, reportRpcError } from "../rpc-rotator.js";
 import {
   trackPosition,
   markOutOfRange,
@@ -41,14 +42,11 @@ async function getDLMM() {
 // ─── Lazy wallet/connection init ──────────────────────────────
 // Avoids crashing on import when WALLET_PRIVATE_KEY is not yet set
 // (e.g. during screening-only tests).
-let _connection = null;
 let _wallet = null;
 
+// Connection now managed by rpc-rotator.js for auto-rotation on 429
 function getConnection() {
-  if (!_connection) {
-    _connection = new Connection(process.env.RPC_URL, "confirmed");
-  }
-  return _connection;
+  return getRotatorConnection();
 }
 
 function getWallet() {
@@ -283,6 +281,7 @@ export async function deployPosition({
       txs: txHashes,
     };
   } catch (error) {
+    reportRpcError(error);
     log("deploy_error", error.message);
     return { success: false, error: error.message };
   }
@@ -714,6 +713,7 @@ export async function claimFees({ position_address }) {
 
     return { success: true, position: position_address, txs: txHashes, base_mint: pool.lbPair.tokenXMint.toString() };
   } catch (error) {
+    reportRpcError(error);
     log("claim_error", error.message);
     return { success: false, error: error.message };
   }
@@ -943,6 +943,7 @@ export async function closePosition({ position_address, reason }) {
       base_mint: pool.lbPair.tokenXMint.toString(),
     };
   } catch (error) {
+    reportRpcError(error);
     log("close_error", error.message);
     return { success: false, error: error.message };
   }

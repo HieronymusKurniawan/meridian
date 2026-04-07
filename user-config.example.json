@@ -1,6 +1,16 @@
 {
   "preset": "custom",
   "rpcUrl": "https://pump.helius-rpc.com",
+  "rpcUrls": [
+    "https://mainnet.helius-rpc.com/?api-key=YOUR_KEY_1",
+    "https://mainnet.helius-rpc.com/?api-key=YOUR_KEY_2",
+    "https://mainnet.helius-rpc.com/?api-key=YOUR_KEY_3"
+  ],
+  "heliusApiKeys": [
+    "YOUR_HELIUS_KEY_1",
+    "YOUR_HELIUS_KEY_2",
+    "YOUR_HELIUS_KEY_3"
+  ],
   "llmBaseUrl": "",
   "llmApiKey": "",
   "llmModel": "minimax/minimax-m2.7",
